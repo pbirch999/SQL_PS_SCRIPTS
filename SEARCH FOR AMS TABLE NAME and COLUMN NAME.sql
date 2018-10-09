@@ -14,17 +14,17 @@ DECLARE @prefix2 varchar(2) = 'tb', @prefix3 varchar(3)='stb';
 DECLARE @tbName varchar(100) , @colName varchar(200)
 -- add only the name of the table - the script adds the appropriate prefix
 
-SET @tbName = 'user'   
+SET @tbName = 'casetopic'   
 
 -- SET COLUMN NAME
 
  -- Easiest way to limit the results - use "vc" or "dt", or any value, depending on the value to be returned.
 
-SET @colName = 'name'
+SET @colName = 'vc'
 
 --SELECT UPPER(LEFT(@tbName,1))+LOWER(SUBSTRING(@tbName,2,LEN(@tbName)))
 BEGIN
-	If left(@tbname,2) = 'tb' GOTO META_ONE
+	If left(@tbname,2) = @prefix2 GOTO META_ONE
 	ELSE  GOTO ADD_PREFIX;
 END
 
@@ -33,31 +33,20 @@ ADD_PREFIX:
 
 If NOT EXISTS (SELECT TABLE_NAME FROM information_schema.tables WHERE TABLE_NAME = @tbName) 
 
-BEGIN
-	SET @tbName = UPPER(LEFT(@tbName,1))+LOWER(SUBSTRING(@tbName,2,LEN(@tbName)))
-	SET @tbName = @prefix3 + @tbName
+	BEGIN
+		SET @tbName = UPPER(LEFT(@tbName,1))+LOWER(SUBSTRING(@tbName,2,LEN(@tbName)))
+		SET @tbName = @prefix3 + @tbName
+		SELECT @tbname as STB_STEP
 
-END
-
-IF EXISTS (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.tables WHERE table_name = @tbName)
-	PRINT 'There is an stb table available'
-
-
-If NOT EXISTS (SELECT TABLE_NAME FROM information_schema.tables WHERE TABLE_NAME = @tbName) 
-
-BEGIN
+	END
+ELSE
+	BEGIN
 	
-	SET @tbName = @prefix2 + SUBSTRING(@tbName,4,100)
-	SET @tbName =  LOWER( LEFT(UPPER(LEFT(@tbName, 3)),2)) + UPPER(SUBSTRING(@tbName,3,LEN(1))) + LOWER(SUBSTRING(@tbName,4,LEN(@tbName)))
+		SET @tbName = @prefix2 + SUBSTRING(@tbName,4,100)
+		SET @tbName =  LOWER( LEFT(UPPER(LEFT(@tbName, 3)),2)) + UPPER(SUBSTRING(@tbName,3,LEN(1))) + LOWER(SUBSTRING(@tbName,4,LEN(@tbName)))
+		SELECT @tbname AS TB_STEP
+	END
 
-END
-
-
-/*
-BEGIN
-	PRINT @tbName + ' does not exist.'
-END
-*/
 
 /*
 DECLARE @SQL as varchar(max)
@@ -66,6 +55,13 @@ EXEC(@SQL)
 */
 
 META_ONE:
+/*
+DECLARE @SQL as varchar(max)
+SET @SQL = 'SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ' + @tbName + ' ORDER BY 1'
+EXEC(@SQL)
+
+*/
+
 
 SELECT 
 	UPPER (
@@ -82,7 +78,7 @@ SELECT
 			IIF(IS_NULLABLE = 'NO', ' ', IS_NULLABLE) as IS_NULLABLE
 FROM INFORMATION_SCHEMA.COLUMNS	CC 
 	INNER JOIN INFORMATION_SCHEMA.Tables TT 
-	ON cc.TABLE_NAME = tt.TABLE_NAME and tt.TABLE_TYPE = 'BASE TABLE' and tt.TABLE_NAME = @tbName
+	ON cc.TABLE_NAME = tt.TABLE_NAME and tt.TABLE_NAME = @tbName
 WHERE COLUMN_NAME LIKE '%'+ @colName + '%'
 ORDER BY 1
 
@@ -90,7 +86,7 @@ ORDER BY 1
 If left(@tbname,2) = 'tb'
 SELECT 'This is a TB table';
 
-If left(@tbname,3) = 'stb'
+ELSE
 SELECT 'This is a STB table';
 
 --SELECT * FROM vtabsample  ; --a way to see an example of the actual values. 
