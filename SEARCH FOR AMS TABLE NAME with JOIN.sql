@@ -10,4 +10,3 @@ WHERE tt.table_Name LIKE '%Role%'
 --and  left(cc.column_name, 2) = 'vc'
 ORDER BY tt.table_name
 	--SELECT * FROM tbCustName
-
